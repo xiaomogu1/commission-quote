@@ -10,7 +10,10 @@ public final class CurrentUser {
     private CurrentUser() {
     }
 
-    /** The staff member's username from the JWT, or "anonymousUser" when security is disabled. */
+    /**
+     * The staff member's username from the JWT. With security disabled (dev) this is Spring's anonymous
+     * principal, "anonymousUser"; "anonymous" only when there is no security context at all.
+     */
     public static String name() {
         return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
                 .map(Authentication::getName)

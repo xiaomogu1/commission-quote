@@ -44,13 +44,15 @@ class VendorRestClientConfig {
                 .requestInterceptor(new CorrelationIdInterceptor())
                 .requestInterceptor(new VendorNetworkErrorInterceptor())
                 .defaultStatusHandler(VendorRestClientConfig::isTransient, (request, response) -> {
-                    log.warn("Vendor unavailable (HTTP {})", response.getStatusCode().value());
-                    throw new VendorUnavailableException("Vendor unavailable (HTTP " + response.getStatusCode().value() + ")", null);
+                    String message = "Vendor unavailable (HTTP %d)".formatted(response.getStatusCode().value());
+                    log.warn(message);
+                    throw new VendorUnavailableException(message, null);
                 })
+                // Not logged here: QuoteExceptionHandler logs it once, at ERROR, with the stack trace.
                 .defaultStatusHandler(VendorRestClientConfig::isRejected, (request, response) -> {
-                    log.error("Vendor rejected the request (HTTP {}). 401/403: check the api-key; other 4xx: contract mismatch.",
-                            response.getStatusCode().value());
-                    throw new VendorRejectedException("Vendor rejected the request (HTTP " + response.getStatusCode().value() + ")");
+                    throw new VendorRejectedException(
+                            "Vendor rejected the request (HTTP %d). 401/403: check the api-key; other 4xx: contract mismatch."
+                                    .formatted(response.getStatusCode().value()));
                 })
                 .build();
     }
