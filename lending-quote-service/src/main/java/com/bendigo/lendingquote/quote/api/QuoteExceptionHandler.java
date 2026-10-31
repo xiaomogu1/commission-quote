@@ -52,7 +52,9 @@ class QuoteExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ProblemDetail handleUnreadable(HttpMessageNotReadableException ex) {
-        // Malformed JSON or a value of the wrong type (e.g. riskBand "EXTREME"). The UI can't produce these.
+        // Malformed JSON or a value of the wrong type (e.g. riskBand "EXTREME"). The UI can't produce these, so
+        // this is most likely a direct API call: log why, but keep the parser's details out of the response.
+        log.warn("Unreadable quote request: {}", ex.getMostSpecificCause().getMessage());
         return problem(HttpStatus.BAD_REQUEST, "Invalid request", "The request body could not be read.");
     }
 
