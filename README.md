@@ -43,7 +43,7 @@ About 4 hours, spent in priority order. P0 is the brief, P1 is what a production
 | | Persist quotes, `GET /api/commission-quotes/{id}` | ✖️ |
 | | Metrics and alerts | ✖️ |
 | | Contract testing (OpenAPI / Pact) | ✖️ |
-| | Image scanning and deployment pipeline | ✖️ |
+| | CD: image scanning, push to a registry, deploy to stg/prd | ✖️ |
 | | Browser e2e (Playwright), mutation testing | ✖️ |
 | | Feature flag for the real vendor, load tests (k6) | ✖️ |
 
@@ -268,7 +268,7 @@ commission-quote/
 └── .github/workflows/          one workflow per application, plus e2e
 ```
 
-## CI
+## CI (no CD yet)
 
 GitHub Actions, one workflow per application (triggered by changes under its folder) plus e2e:
 
@@ -276,6 +276,9 @@ GitHub Actions, one workflow per application (triggered by changes under its fol
 - `mock-vendor`: tests → jar → Docker image
 - `quote-ui`: install → lint → tests → build
 - `e2e`: builds and starts the whole system and runs `e2e-tests`
+
+This is CI only. Docker images are built to prove the Dockerfiles work, but they are not pushed anywhere or
+deployed: there is no target environment for this exercise. CD is not done; the plan is under Delivery below.
 
 ## Known limitations and next steps
 
@@ -291,7 +294,10 @@ GitHub Actions, one workflow per application (triggered by changes under its fol
 - **Browser e2e.** Playwright tests of the UI flow; today e2e drives the HTTP API (including through the UI's nginx).
 - **Test quality.** Mutation testing (PIT) to check the tests would catch real bugs, not just execute code.
 - **Persistence.** If quotes need to be looked up later: Postgres + Spring Data JPA (`quote/repository`), Flyway migrations.
-- **Delivery.** Image scanning (Trivy/Snyk) and signing, deploy to stg with an e2e smoke test, approval to prd.
+- **Delivery (CD, not done).** On merge to main: build the image once, scan it (Trivy/Snyk), sign it and push it
+  to ECR tagged with the git sha; deploy automatically to stg and run the e2e tests as a smoke test; manual approval;
+  deploy the same image to prd (only the environment's config and secrets differ); roll back by redeploying the
+  previous tag.
 - **Operations.** JSON logs, audit events shipped to a dedicated store, vendor latency/error metrics and alerts, circuit breaker state on health.
 - **Switching to the real vendor.** A feature flag for a gradual rollout, with shadow traffic to compare results before the cut-over.
 - **Performance.** k6 load tests against stg once the real vendor's SLA and rate limits are known.
