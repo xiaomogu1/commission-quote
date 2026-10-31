@@ -20,7 +20,7 @@ an unreliable third party into clear, safe responses for the UI.
 
 ## Scope and priorities
 
-About 4 hours, spent in priority order. P0 is the brief, P1 is what a production integration needs, P2 is next
+About 4 hours, spent in priority order. P0 is the brief, P1 is the groundwork the brief asks for ("treat this as the foundation of a real app"), P2 is next
 (details in [Known limitations and next steps](#known-limitations-and-next-steps)).
 
 | Priority | Item | Status |
@@ -33,7 +33,7 @@ About 4 hours, spent in priority order. P0 is the brief, P1 is what a production
 | | Vendor timeouts and errors handled | ✅ |
 | | Core tests and edge cases | ✅ |
 | | README with run instructions and AI usage | ✅ |
-| **P1 – production** | Circuit breaker on the vendor | ✅ |
+| **P1 – foundation** | Circuit breaker on the vendor | ✅ |
 | | Staff auth on the service: JWT + role | ✅ |
 | | Correlation id and audit log | ✅ |
 | | dev / stg / prd config; missing config stops startup | ✅ |
