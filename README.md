@@ -18,6 +18,35 @@ The browser never talks to the vendor. The vendor's `api-key` exists only in `le
 the reason the service exists: it is a backend-for-frontend (BFF) that keeps the secret server-side and turns
 an unreliable third party into clear, safe responses for the UI.
 
+## Scope and priorities
+
+About 4 hours, spent in priority order. P0 is the brief, P1 is what a production integration needs, P2 is next
+(details in [Known limitations and next steps](#known-limitations-and-next-steps)).
+
+| Priority | Item | Status |
+|---|---|---|
+| **P0 – brief** | Form (amount, term, risk band), Generate Quote, quote display | ✅ |
+| | Loading and error states | ✅ |
+| | Mock vendor API: `api-key` required, fails randomly | ✅ |
+| | `api-key` never exposed to the browser (BFF) | ✅ |
+| | Validation of invalid numbers and limits, in the UI and enforced by the service | ✅ |
+| | Vendor timeouts and errors handled | ✅ |
+| | Core tests and edge cases | ✅ |
+| | README with run instructions and AI usage | ✅ |
+| **P1 – production** | Circuit breaker on the vendor | ✅ |
+| | Staff auth on the service: JWT + role | ✅ |
+| | Correlation id and audit log | ✅ |
+| | dev / stg / prd config; missing config stops startup | ✅ |
+| | Docker Compose, CI per app, e2e tests, 95% coverage gate | ✅ |
+| **P2 – next** | UI login (BFF-managed session cookie) | ✖️ |
+| | Idempotency key (no duplicate quotes) | ✖️ |
+| | Persist quotes, `GET /api/commission-quotes/{id}` | ✖️ |
+| | Metrics and alerts | ✖️ |
+| | Contract testing (OpenAPI / Pact) | ✖️ |
+| | Image scanning and deployment pipeline | ✖️ |
+| | Browser e2e (Playwright), mutation testing | ✖️ |
+| | Feature flag for the real vendor, load tests (k6) | ✖️ |
+
 ## Setup
 
 | Tool | Version | Needed for | Check |
@@ -285,5 +314,5 @@ and this README, and I directed the design and reviewed every change.
   user, and e2e tests being skipped (Testcontainers vs Docker 29) while the build still reported success.
 
 Time spent: about 4 hours of hands-on work, so I scoped it by priority. I prioritised the integration itself: keeping the key secret, handling every way the vendor can
-fail, and testing those paths. The items under "Known limitations and next steps" are what I didn't get to and would
+fail, and testing those paths. The P2 items in "Scope and priorities" are what I didn't get to and would
 do next. The core feature is in `quote/` and `quote-ui/src/App.tsx`.
