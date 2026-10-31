@@ -35,6 +35,18 @@ class QuoteApiE2eTest {
     }
 
     @Test
+    void createQuote_throughTheUi_returnsQuote() {
+        // The browser's path: the UI container (nginx) serves the page and forwards /api to the service.
+        ResponseEntity<String> page = E2eStack.get(stack, E2eStack.UI, 8080, "/");
+        ResponseEntity<String> response = E2eStack.post(stack, E2eStack.UI, 8080, E2eStack.QUOTE_PATH, VALID_QUOTE);
+
+        assertThat(page.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(page.getBody()).contains("<div id=\"root\">");
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(JsonPath.<Double>read(response.getBody(), "$.totalCommission")).isEqualTo(3000.00);
+    }
+
+    @Test
     void createQuote_invalidInput_returns400() {
         ResponseEntity<String> response = postQuote(stack, """
                 {"loanAmount": 1, "loanTermInMonths": 360, "riskBand": "MEDIUM"}""");

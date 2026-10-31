@@ -16,6 +16,7 @@ import org.testcontainers.containers.wait.strategy.WaitStrategy;
  */
 final class E2eStack {
 
+    static final String UI = "quote-ui";
     static final String SERVICE = "lending-quote-service";
     static final String VENDOR = "mock-vendor";
     static final String QUOTE_PATH = "/api/commission-quotes";
@@ -33,6 +34,7 @@ final class E2eStack {
                 .withEnv("VENDOR_MIN_LATENCY_MS", "0")
                 .withEnv("VENDOR_MAX_LATENCY_MS", "0")
                 .withEnv(vendorSettings)
+                .withExposedService(UI, 8080, Wait.forHttp("/").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(10)))
                 .withExposedService(SERVICE, 8080, healthy())
                 .withExposedService(VENDOR, 8081, healthy());
         return stack;
@@ -44,6 +46,15 @@ final class E2eStack {
                 .post().uri(path)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(body)
+                .retrieve()
+                .onStatus(status -> true, (request, response) -> { /* assert on the status instead of throwing */ })
+                .toEntity(String.class);
+    }
+
+    static ResponseEntity<String> get(ComposeContainer stack, String service, int port, String path) {
+        String baseUrl = "http://" + stack.getServiceHost(service, port) + ":" + stack.getServicePort(service, port);
+        return RestClient.create(baseUrl)
+                .get().uri(path)
                 .retrieve()
                 .onStatus(status -> true, (request, response) -> { /* assert on the status instead of throwing */ })
                 .toEntity(String.class);
