@@ -1,0 +1,9 @@
+{
+  "priority": 10,
+  "request": { "method": "POST", "urlPath": "/v1/commission-quotes" },
+  "response": {
+    "status": 401,
+    "headers": { "Content-Type": "application/problem+json" },
+    "jsonBody": { "title": "Unauthorized", "status": 401, "detail": "A valid api-key header is required" }
+  }
+}

@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: mock-vendor
+  # Local runs read the git-ignored .env at the repo root (see .env.example).
+  config:
+    import: optional:file:../.env[.properties]
+
+server:
+  port: ${PORT:8081}
+
+mock-vendor:
+  # Required, no default: the app refuses to start without a key.
+  api-key: ${VENDOR_API_KEY}
+  simulation:
+    failure-rate: ${VENDOR_FAILURE_RATE:0.2}
+    min-latency-ms: ${VENDOR_MIN_LATENCY_MS:100}
+    max-latency-ms: ${VENDOR_MAX_LATENCY_MS:800}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

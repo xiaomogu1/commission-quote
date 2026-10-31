@@ -1,0 +1,25 @@
+# stg: deployed to AWS, talking to the vendor's sandbox.
+#
+# Nothing here has a default on purpose: a missing value stops the app from starting instead of
+# silently pointing at the wrong vendor. The platform provides:
+#   VENDOR_BASE_URL  - plain environment variable
+#   VENDOR_API_KEY   - injected from AWS Secrets Manager (ECS task definition "secrets" / External Secrets
+#                      in Kubernetes), read through the service's IAM role. Never in git, never in an image.
+app:
+  security:
+    enabled: true
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # The Keycloak realm that signs staff tokens, e.g. https://sso.example.com/realms/lending
+          issuer-uri: ${OIDC_ISSUER_URI:}
+
+# vendor.base-url and vendor.api-key come from VENDOR_BASE_URL / VENDOR_API_KEY (see application.yml).
+# There is deliberately no default: if either is missing, the app refuses to start.
+
+logging:
+  level:
+    com.bendigo: INFO

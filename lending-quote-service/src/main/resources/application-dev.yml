@@ -1,0 +1,12 @@
+# dev: a developer machine or docker compose, talking to the mock vendor.
+spring:
+  config:
+    # bootRun reads the git-ignored .env at the repo root (see .env.example). In docker the env vars are set instead.
+    import: optional:file:../.env[.properties]
+
+vendor:
+  base-url: ${VENDOR_BASE_URL:http://localhost:8081}
+
+logging:
+  level:
+    com.bendigo: DEBUG

@@ -1,0 +1,46 @@
+# Runs the whole system from the repo root (used by e2e-tests too):
+#   docker compose up --build
+#   then open http://localhost:3000
+#
+# Every setting can be overridden at run time, e.g.
+#   VENDOR_FAILURE_RATE=1 docker compose up                                  # a vendor that always fails
+#   VENDOR_MIN_LATENCY_MS=5000 VENDOR_MAX_LATENCY_MS=5000 docker compose up  # slower than our timeout -> 504
+#   VENDOR_BASE_URL=https://other-vendor docker compose up lending-quote-service  # a different vendor
+#
+# The default key only pairs the local service with the local mock vendor (override it in .env if you like).
+# Real keys are never committed: in stg/prd the platform injects VENDOR_API_KEY from AWS Secrets Manager.
+services:
+  mock-vendor:
+    build:
+      context: ./mock-vendor
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8081:8081"   # exposed only so you can curl it directly; the browser never talks to it
+    environment:
+      VENDOR_API_KEY: ${VENDOR_API_KEY:-local-dev-only-key}
+      VENDOR_FAILURE_RATE: ${VENDOR_FAILURE_RATE:-0.2}
+      VENDOR_MIN_LATENCY_MS: ${VENDOR_MIN_LATENCY_MS:-100}
+      VENDOR_MAX_LATENCY_MS: ${VENDOR_MAX_LATENCY_MS:-800}
+
+  lending-quote-service:
+    build:
+      context: ./lending-quote-service
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      VENDOR_BASE_URL: ${VENDOR_BASE_URL:-http://mock-vendor:8081}
+      VENDOR_API_KEY: ${VENDOR_API_KEY:-local-dev-only-key}
+      VENDOR_READ_TIMEOUT: ${VENDOR_READ_TIMEOUT:-3s}
+    depends_on:
+      - mock-vendor
+
+  quote-ui:
+    build:
+      context: ./quote-ui
+      dockerfile: docker/Dockerfile
+    ports:
+      - "3000:8080"   # open http://localhost:3000
+    depends_on:
+      - lending-quote-service

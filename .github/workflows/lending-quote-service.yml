@@ -1,0 +1,46 @@
+name: lending-quote-service
+
+on:
+  push:
+    branches: [main]
+    paths: ["lending-quote-service/**", ".github/workflows/lending-quote-service.yml"]
+  pull_request:
+    paths: ["lending-quote-service/**", ".github/workflows/lending-quote-service.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lending-quote-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      # Each test level is its own step (fast first), so a red build shows which level failed.
+      - name: Unit tests
+        run: ./gradlew unitTest
+      - name: Component tests
+        run: ./gradlew componentTest
+      - name: Black-box tests
+        run: ./gradlew blackBoxTest
+      - name: Coverage (fails below 95% line / class)
+        run: ./gradlew jacocoTestCoverageVerification
+      - name: Package
+        run: ./gradlew bootJar
+      - name: Build Docker image
+        run: docker build -f docker/Dockerfile -t lending-quote-service:${{ github.sha }} .
+      - name: Upload test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-lending-quote-service
+          path: |
+            lending-quote-service/build/reports/tests
+            lending-quote-service/build/reports/jacoco

@@ -1,0 +1,62 @@
+# Shared settings for every environment. Per-environment values live in application-{dev,stg,prd}.yml.
+# Pick one with SPRING_PROFILES_ACTIVE; with none set, the app runs as dev.
+spring:
+  application:
+    name: lending-quote-service
+  profiles:
+    default: dev
+  jackson:
+    deserialization:
+      # Reject 12.5 for an integer field instead of silently truncating it to 12.
+      accept-float-as-int: false
+
+server:
+  port: ${PORT:8080}
+
+# Outbound integration with the commission quote vendor (bound to VendorProperties, validated at startup).
+# Empty defaults on purpose: a missing value fails validation at startup. (An unresolved placeholder like
+# ${VENDOR_BASE_URL} would NOT fail: Spring keeps the literal text as the value.)
+vendor:
+  base-url: ${VENDOR_BASE_URL:}
+  # Never commit a real value. dev: from .env. stg/prd: injected by the platform from AWS Secrets Manager.
+  api-key: ${VENDOR_API_KEY:}
+  connect-timeout: ${VENDOR_CONNECT_TIMEOUT:1s}
+  read-timeout: ${VENDOR_READ_TIMEOUT:3s}
+
+app:
+  security:
+    # Staff must present a JWT with the LENDING_STAFF role. Off in dev until the UI has a login flow.
+    enabled: ${SECURITY_ENABLED:false}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      # Stops calling a vendor that is clearly down, so staff get an instant "try again later" instead of
+      # waiting for a timeout on every request, and the vendor gets room to recover.
+      vendor:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 10
+        # Opens when half of the last 10 calls failed. The mock vendor's normal 20% failure rate stays below this.
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+        # Only transient vendor problems count. A 4xx (wrong api-key, contract mismatch) is our problem:
+        # opening the circuit would not help and would hide the real cause.
+        record-exceptions:
+          - com.bendigo.lendingquote.quote.exception.VendorTimeoutException
+          - com.bendigo.lendingquote.quote.exception.VendorUnavailableException
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  pattern:
+    # Prefix every log line with the request's correlation id.
+    correlation: "[%X{correlationId:-}] "
+  level:
+    # Audit events must always be written, whatever the other log levels are.
+    audit: INFO

@@ -1,0 +1,15 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "POST",
+    "urlPath": "/v1/commission-quotes",
+    "headers": { "api-key": { "equalTo": "local-dev-only-key" } },
+    "bodyPatterns": [ { "matchesJsonPath": "$[?(@.loanAmount == 5040.4)]" } ]
+  },
+  "response": {
+    "status": 200,
+    "fixedDelayMilliseconds": 5000,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": { "quoteId": "Q-STUB-SLOW", "commissionRate": 0.006, "totalCommission": 30.24 }
+  }
+}

@@ -1,0 +1,24 @@
+# Build output
+build/
+out/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Frontend
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Secrets - never commit real keys; use .env.example as the template
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
